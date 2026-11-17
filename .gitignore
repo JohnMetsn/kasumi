@@ -1,0 +1,22 @@
+# Build output. The waf lock file and build/c4che record the local environment
+# (paths, tokens): never commit them.
+build/
+.lock-waf*
+.waf*
+*.pbw
+
+# Local working material
+screenshots/
+concept/
+store/upload-*/
+TEST_REPORT.md
+STORE_LISTING.md
+REDDIT_POST.md
+
+# OS / editor / Python
+.DS_Store
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+node_modules/

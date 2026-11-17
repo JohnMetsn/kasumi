@@ -1,0 +1,156 @@
+{
+  "name": "kasumi",
+  "author": "John Metsn",
+  "version": "1.0.2",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": true,
+  "dependencies": {},
+  "pebble": {
+    "displayName": "Kasumi",
+    "uuid": "37badf50-1ab5-41e7-9dd4-fe35242b23bc",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery",
+      "gabbro"
+    ],
+    "watchapp": {
+      "watchface": true
+    },
+    "capabilities": [
+      "configurable"
+    ],
+    "configPage": "config.html",
+    "usesPermissions": [
+      {
+        "name": "Location",
+        "reason": "To paint the weather for your chosen place",
+        "required": true
+      }
+    ],
+    "messageKeys": [
+      "HELLO",
+      "TEMP_C10",
+      "TEMP_DISP",
+      "UNIT_F",
+      "COND",
+      "WIND10",
+      "WIND_DIR",
+      "PRECIP",
+      "HUMIDITY",
+      "UV",
+      "SUNRISE",
+      "SUNSET",
+      "H_TEMP",
+      "D_HIGH",
+      "D_COND",
+      "H_COND",
+      "UPDATED",
+      "S_LAYERS",
+      "S_DIGITS",
+      "S_DATE",
+      "S_KANJI",
+      "S_TRIGGER",
+      "S_LIGHTNING",
+      "S_FORECAST",
+      "S_UNITS",
+      "DEMO"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "font",
+          "name": "FONT_MINCHO_TIME_47",
+          "file": "fonts/ShipporiMinchoB1-ExtraBold-kasumi.ttf",
+          "characterRegex": "[0-9:]",
+          "targetPlatforms": [
+            "emery"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_MINCHO_TIME_54",
+          "file": "fonts/ShipporiMinchoB1-ExtraBold-kasumi.ttf",
+          "characterRegex": "[0-9:]",
+          "targetPlatforms": [
+            "gabbro"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_JOST_TIME_47",
+          "file": "fonts/Jost-Medium-kasumi.ttf",
+          "characterRegex": "[0-9:]",
+          "targetPlatforms": [
+            "emery"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_JOST_TIME_54",
+          "file": "fonts/Jost-Medium-kasumi.ttf",
+          "characterRegex": "[0-9:]",
+          "targetPlatforms": [
+            "gabbro"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_JOST_DATE_15",
+          "file": "fonts/Jost-Medium-kasumi.ttf",
+          "characterRegex": "[0-9A-Z ]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_JOST_SMALL_10",
+          "file": "fonts/Jost-Medium-kasumi.ttf",
+          "characterRegex": "[0-9A-Z°-]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_MINCHO_WEEK_18",
+          "file": "fonts/ShipporiMinchoB1-ExtraBold-kasumi.ttf",
+          "characterRegex": "[日月火水木金土]",
+          "targetPlatforms": [
+            "emery"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_MINCHO_WEEK_14",
+          "file": "fonts/ShipporiMinchoB1-ExtraBold-kasumi.ttf",
+          "characterRegex": "[日月火水木金土]",
+          "targetPlatforms": [
+            "gabbro"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_MINCHO_WEEK_11",
+          "file": "fonts/ShipporiMinchoB1-ExtraBold-kasumi.ttf",
+          "characterRegex": "[日月火水木金土]"
+        },
+        {
+          "type": "font",
+          "name": "FONT_SEAL_KANJI_21",
+          "file": "fonts/ZenKakuGothicNew-Bold-kasumi.ttf",
+          "characterRegex": "[晴曇雨雪霙嵐風空]",
+          "targetPlatforms": [
+            "emery"
+          ]
+        },
+        {
+          "type": "font",
+          "name": "FONT_SEAL_KANJI_23",
+          "file": "fonts/ZenKakuGothicNew-Bold-kasumi.ttf",
+          "characterRegex": "[晴曇雨雪霙嵐風空]",
+          "targetPlatforms": [
+            "gabbro"
+          ]
+        }
+      ]
+    }
+  }
+}

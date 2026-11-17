@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kasumi</title>
+<style>
+:root{color-scheme:light dark;--ink:#15181C;--ink2:#5A6066;--paper:#F2EFE2;--line:#C9C4B2;--blue:#1F4E8C;--shu:#C8371D}
+@media (prefers-color-scheme:dark){:root{--ink:#E8E6DE;--ink2:#A7A9A6;--paper:#0F1622;--line:#2A3445;--blue:#8FB2E8;--shu:#E8573A}}
+*{box-sizing:border-box}
+body{margin:0;padding:20px 18px 40px;font:16px/1.45 -apple-system,system-ui,sans-serif;background:var(--paper);color:var(--ink)}
+header{display:flex;gap:14px;align-items:center;margin-bottom:6px}
+.seal{width:44px;height:44px;display:grid;place-items:center;background:var(--shu);color:#fff;font:700 28px "Hiragino Mincho ProN","Yu Mincho",serif;border-radius:2px;box-shadow:inset 0 0 0 2px var(--shu),inset 0 0 0 3px #fff}
+h1{font-size:24px;margin:0;font-weight:500;letter-spacing:.04em}
+#status{font-size:13px;color:var(--ink2);margin:4px 0 0}
+h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin:26px 0 8px;font-weight:600}
+select{width:100%;font:inherit;padding:10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit}
+.tog{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.tog input{width:20px;height:20px;margin-top:2px;accent-color:var(--shu)}
+.tog b{font-weight:500}
+.tog small{grid-column:2;color:var(--ink2);font-size:13px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;padding:10px 6px;font:inherit;font-size:15px;background:transparent;color:inherit;border:0;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--blue);color:#fff}
+.note{font-size:13px;color:var(--ink2);margin:8px 0 0}
+.try{margin-top:12px;width:100%;padding:12px;font:inherit;border-radius:8px;border:1px solid var(--blue);background:transparent;color:inherit}
+</style>
+</head>
+<body>
+<header><div class="seal">霞</div><div><h1>Kasumi</h1><p id="status">Waiting for the app…</p></div></header>
+
+<h2>Location</h2>
+<select id="location"><option value="">First place in the Pebble app</option></select>
+<p class="note">Manage your places in the Pebble app (Settings → Weather).</p>
+
+<h2>5-day forecast</h2>
+<div class="seg" id="forecast"><button data-v="0">Five views</button><button data-v="1">Five seals</button><button data-v="2">Off</button></div>
+<p class="note" id="fcNote"></p>
+
+<h2>Temperature</h2>
+<div class="seg" id="units"><button data-v="0">Pebble app</button><button data-v="1">°C</button><button data-v="2">°F</button></div>
+
+<h2>Digits</h2>
+<div class="seg" id="digits"><button data-v="0">Mincho</button><button data-v="1">Jost</button></div>
+
+<h2>Date</h2>
+<div class="seg" id="date"><button data-v="0">Kanji 月 16</button><button data-v="1">MON 16</button><button data-v="2">None</button></div>
+
+<h2>Seal</h2>
+<div class="seg" id="kanji"><button data-v="1">Weather kanji + temp</button><button data-v="0">Temp only</button></div>
+
+<h2>What the weather may change</h2>
+<div id="layers"></div>
+
+<h2>Animation</h2>
+<div class="seg" id="trigger"><button data-v="0">Shake</button><button data-v="1">Glance</button><button data-v="2">Backlight</button><button data-v="3">Off</button></div>
+<p class="note" id="trigNote"></p>
+<label class="tog"><input type="checkbox" id="lightning"><b>Lightning in storms</b><small>Heavy rain with wind from 10 m/s. Only in the animation.</small></label>
+<button class="try" id="preview">Play the animation on the watch</button>
+
+<script>
+var LAYERS=[[1,'Sky and sun','Sky colour by time of day; the path of the sun and moon.'],[2,'Temperature','The snowline on the mountain, and a red Fuji on hot clear days.'],[4,'Clouds','Cloud banks, mackerel sky and grey skies.'],[8,'Rain and snow','Rain strokes, snowflakes and rings on the water.'],[16,'Wind','Waves and foam, slanting rain, drifting clouds; the bead on Round 2.'],[32,'Mist','Bands of mist around the foot of the mountain.'],[64,'UV rings','Rings around the sun from UV 3.'],[128,'Forecast','The hills trace the next 12 hours; the 5-day forecast.'],[256,'Distant showers','Rain curtains over the plain in the hours it will rain.'],[512,'Fade old data','After an hour without new data the colour drains away.']];
+var TRIG=['Shake or tap the watch. Uses almost no battery.','Plays when you raise your wrist to look. The most natural; uses a little more battery.','Plays whenever the backlight comes on.','The picture stays still.'];
+var FC=['Five small prints, today first: each day’s sky, a red or blue Fuji with its snowline, and the day’s high.','Five seals, today first: the weekday and the day’s high. Red from 15°C, blue below.','No 5-day forecast.'];
+var S=null;
+function send(){Pebble.sendMessage('pkjs',{type:'set',settings:S});}
+function notes(){document.getElementById('trigNote').textContent=TRIG[S.trigger]||'';document.getElementById('fcNote').textContent=FC[S.forecast]||'';}
+function seg(id,key){var el=document.getElementById(id);Array.prototype.forEach.call(el.children,function(b){b.className=String(S[key])===b.dataset.v?'on':'';b.onclick=function(){S[key]=parseInt(b.dataset.v,10);seg(id,key);notes();send();};});}
+function render(locs){
+  var sel=document.getElementById('location');
+  while(sel.options.length>1)sel.remove(1);
+  (locs||[]).forEach(function(l){var o=document.createElement('option');o.value=l.id;o.textContent=l.name;sel.appendChild(o);});
+  sel.value=S.location||'';
+  sel.onchange=function(){S.location=sel.value;send();};
+  ['forecast','units','digits','date','kanji','trigger'].forEach(function(k){seg(k,k);});notes();
+  var box=document.getElementById('layers');box.innerHTML='';
+  LAYERS.forEach(function(l){var lab=document.createElement('label');lab.className='tog';var i=document.createElement('input');i.type='checkbox';i.checked=!!(S.layers&l[0]);i.onchange=function(){S.layers=i.checked?(S.layers|l[0]):(S.layers&~l[0]);send();};lab.appendChild(i);var b=document.createElement('b');b.textContent=l[1];lab.appendChild(b);var sm=document.createElement('small');sm.textContent=l[2];lab.appendChild(sm);box.appendChild(lab);});
+  var lt=document.getElementById('lightning');lt.checked=!!S.lightning;lt.onchange=function(){S.lightning=lt.checked?1:0;send();};
+  document.getElementById('preview').onclick=function(){Pebble.sendMessage('pkjs',{type:'preview'});};
+}
+Pebble.addEventListener('ready',function(e){
+  if(e.target!=='pkjs')return;
+  document.getElementById('status').textContent='Changes apply straight away.';
+  Pebble.sendMessage('pkjs',{type:'get'}).then(function(r){S=r.settings;render(r.locations);});
+});
+</script>
+</body>
+</html>
