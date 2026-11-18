@@ -5,10 +5,13 @@
 #define PK_WEATHER 1
 #define PK_SETTINGS 2
 #define PK_FORMAT 3
+#define PK_FIRST_RUN 4   // time of the first launch (for the plugin hint)
+#define PK_HINT_OFF 5    // the user shook the hint away
 #define FORMAT_VERSION 3
 
 #define ANIM_FRAME_MS 66
 #define LOOK_COOLDOWN_S 3
+#define HINT_DAYS 2
 
 static Window *s_window;
 static Layer *s_canvas;
@@ -26,6 +29,18 @@ static int s_look_run;
 static bool s_look_armed = true;
 static time_t s_last_trigger;
 static uint8_t s_subscribed_trigger = 0xFF;
+static bool s_tap_on;
+
+// The plugin hint shows only while no weather has ever arrived, for the first HINT_DAYS after the
+// first launch, until a shake hides it.
+static bool hint_wanted(void) {
+#if defined(KASUMI_DEMO) || defined(KASUMI_REEL)
+  return false;
+#else
+  if (s_wx.valid || persist_read_bool(PK_HINT_OFF)) return false;
+  return time(NULL) - (time_t)persist_read_int(PK_FIRST_RUN) < HINT_DAYS * 24 * 3600;
+#endif
+}
 
 #if defined(KASUMI_DEMO) || defined(KASUMI_REEL)
 #include "demo.h"
@@ -100,7 +115,17 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
   reel_apply();
 }
 #else
-static void tap_handler(AccelAxisType axis, int32_t direction) { start_animation(); }
+static void update_tap(void);
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+  if (hint_wanted()) {
+    persist_write_bool(PK_HINT_OFF, true);
+    render_set_hint(false);
+    update_tap();
+    if (s_canvas) layer_mark_dirty(s_canvas);
+    return;
+  }
+  if (s_set.trigger == TRIG_TAP) start_animation();
+}
 #endif
 
 static void backlight_handler(bool on) {
@@ -133,14 +158,12 @@ static void accel_handler(AccelData *data, uint32_t num) {
 static void subscribe_trigger(void) {
   if (s_subscribed_trigger == s_set.trigger) return;
   switch (s_subscribed_trigger) {
-    case TRIG_TAP: accel_tap_service_unsubscribe(); break;
     case TRIG_LOOK: accel_data_service_unsubscribe(); break;
     case TRIG_LIGHT: backlight_service_unsubscribe(); break;
     default: break;
   }
   s_subscribed_trigger = s_set.trigger;
   switch (s_set.trigger) {
-    case TRIG_TAP: accel_tap_service_subscribe(tap_handler); break;
     case TRIG_LOOK:
       accel_data_service_subscribe(5, accel_handler);
       accel_service_set_sampling_rate(ACCEL_SAMPLING_10HZ);
@@ -148,6 +171,15 @@ static void subscribe_trigger(void) {
     case TRIG_LIGHT: backlight_service_subscribe(backlight_handler); break;
     default: break;
   }
+}
+
+// The tap service serves both the shake trigger and hiding the plugin hint.
+static void update_tap(void) {
+  bool want = s_set.trigger == TRIG_TAP || hint_wanted();
+  if (want == s_tap_on) return;
+  s_tap_on = want;
+  if (want) accel_tap_service_subscribe(tap_handler);
+  else accel_tap_service_unsubscribe();
 }
 
 // ------------------------------------------------------------------ messages
@@ -169,12 +201,14 @@ static int32_t tint(DictionaryIterator *it, uint32_t key, int32_t fallback) {
 
 static void inbox(DictionaryIterator *it, void *ctx) {
   bool changed = false;
-#if defined(KASUMI_DEMO) || defined(KASUMI_REEL)
-  if (false) {  // a demo build keeps its fixed scene
+#if defined(KASUMI_DEMO) || defined(KASUMI_REEL) || defined(KASUMI_NO_WEATHER)
+  if (false) {  // a demo build keeps its fixed scene; KASUMI_NO_WEATHER acts as if the plugin were off
 #else
   if (dict_find(it, MESSAGE_KEY_TEMP_C10)) {
 #endif
     s_wx.valid = true;
+    render_set_hint(false);
+    update_tap();
     s_wx.temp_c10 = tint(it, MESSAGE_KEY_TEMP_C10, 0);
     s_wx.unit_f = tint(it, MESSAGE_KEY_UNIT_F, 0);
     s_wx.cond = tint(it, MESSAGE_KEY_COND, COND_UNKNOWN);
@@ -220,6 +254,7 @@ static void inbox(DictionaryIterator *it, void *ctx) {
 #endif
     apply_fonts();
     subscribe_trigger();
+    update_tap();
     changed = true;
   }
   if (dict_find(it, MESSAGE_KEY_DEMO)) start_animation();
@@ -260,7 +295,11 @@ static void update_proc(Layer *layer, GContext *ctx) {
   }
 }
 
-static void tick(struct tm *t, TimeUnits changed) { layer_mark_dirty(s_canvas); }
+static void tick(struct tm *t, TimeUnits changed) {
+  render_set_hint(hint_wanted());  // the hint expires after HINT_DAYS
+  update_tap();
+  layer_mark_dirty(s_canvas);
+}
 
 static void window_load(Window *w) {
   Layer *root = window_get_root_layer(w);
@@ -301,6 +340,9 @@ static void init(void) {
   reel_apply();
 #endif
   subscribe_trigger();
+  if (!persist_exists(PK_FIRST_RUN)) persist_write_int(PK_FIRST_RUN, (int32_t)time(NULL));
+  render_set_hint(hint_wanted());
+  update_tap();
 
   app_message_register_inbox_received(inbox);
   app_message_open(512, 64);

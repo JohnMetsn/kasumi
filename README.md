@@ -37,6 +37,9 @@ around it.
 - **Next 12 hours:** the hourly temperatures shape the hills in front; distant rain curtains
   hang over the plain in the hours it will rain.
 - **5-day forecast (optional):** five small prints, or five seals.
+- **No weather yet** (plugins preview off): the sky still follows the clock with default sun times, and for
+  the first two days a note explains how to turn the preview on. A shake hides it; it goes away by itself
+  when the first weather arrives.
 - **Stale data:** after an hour without updates the colour drains to grey.
 
 A short animation (rain, snow, water, lightning) plays when you glance at the watch, shake your
@@ -104,6 +107,7 @@ afterwards):
 | `KASUMI_DEMO_ANIM=0.17` | Freeze the animation at that point (0.17 is a lightning flash) |
 | `KASUMI_DEMO_JOST=1` | Force Jost digits |
 | `KASUMI_DEMO_SEALS=1` | Force the five-seals forecast |
+| `KASUMI_NO_WEATHER=1` | Ignore weather messages, as if the plugins preview were off (shows the first-run hint) |
 | `KASUMI_REEL=1` | Step through 30 scenes on every tap (used for the store images) |
 
 ```sh

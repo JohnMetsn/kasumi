@@ -337,6 +337,7 @@ static void text_center(GContext *ctx, const char *str, GFont font, int cx, int 
 
 static const char *const WK_KANJI[7] = {"日", "月", "火", "水", "木", "金", "土"};
 static const char *const WK_EN[7] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+static bool s_hint;
 static const char *const KANJI[9] = {"晴", "曇", "曇", "雨", "雨", "雪", "雪", "霙", "空"};
 
 // ------------------------------------------------------------------ the scene
@@ -346,7 +347,8 @@ void render_scene(GContext *ctx, GRect bounds, const Weather *w, const Settings 
   s_w = L->w; s_h = L->h;
   const int W = L->w, H = L->h;
   const float sc = L->sc;
-  const uint16_t lay = w->valid ? s->layers : 0;
+  // Without weather the picture stays quiet, but the sky still follows the clock (default sun times).
+  const uint16_t lay = w->valid ? s->layers : (s->layers & L_SKY);
   struct tm *lt = localtime(&now);
   int x, y, i;
 
@@ -741,7 +743,7 @@ void render_scene(GContext *ctx, GRect bounds, const Weather *w, const Settings 
   int seal_r = (fc_on && L->seal_fc_right) ? L->seal_fc_right : L->seal_right;
   int seal_b = (fc_on && L->seal_fc_right) ? L->seal_fc_bottom : L->seal_bottom;
   int sx0 = seal_r - sw, sy0 = seal_b - sh;
-  seal_box(sx0, sy0, sw, sh, K_RED, 4242);
+  if (!s_hint) seal_box(sx0, sy0, sw, sh, K_RED, 4242);  // the hint box takes its place
 
   graphics_release_frame_buffer(ctx, fb);
 
@@ -821,7 +823,9 @@ void render_scene(GContext *ctx, GRect bounds, const Weather *w, const Settings 
   int tc10 = w->temp_c10, tdisp = use_f ? (tc10 * 9 / 5 + 320 + (tc10 >= 0 ? 5 : -5)) / 10 : (tc10 + (tc10 >= 0 ? 5 : -5)) / 10;
   if (w->valid) snprintf(sb, sizeof(sb), "%d°", tdisp);
   else snprintf(sb, sizeof(sb), "—");
-  if (s->seal_kanji) {
+  if (s_hint) {
+    // no seal under the hint
+  } else if (s->seal_kanji) {
     const char *kj = KANJI[cond];
     if (w->valid && wind >= 13) kj = (cond == COND_HRAIN || cond == COND_LRAIN) ? "嵐" : "風";
     text_center(ctx, kj, f->seal_kanji, sx0 + sw / 2, sy0 + sw / 2 + 1, GColorWhite);
@@ -844,5 +848,25 @@ void render_scene(GContext *ctx, GRect bounds, const Weather *w, const Settings 
       }
     graphics_release_frame_buffer(ctx, fb);
   }
+
+  // --- first-run hint while no weather has ever arrived (main.c decides when)
+  if (s_hint) {
+    static const char HINT[] = "No weather yet.\nTurn on plugins preview\nin the Pebble app\n(Settings > Plugins).\nShake to hide.";
+    GFont hf = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
+    int bw = L->round ? 176 : 184, bx = (W - bw) / 2, by = L->round ? 128 : 70;
+    GRect tr = GRect(bx + 8, by + 3, bw - 16, 120);
+    GSize ts = graphics_text_layout_get_content_size(HINT, hf, tr, GTextOverflowModeWordWrap, GTextAlignmentCenter);
+    GRect box = GRect(bx, by, bw, ts.h + 12);
+    graphics_context_set_fill_color(ctx, GColorWhite);
+    graphics_fill_rect(ctx, box, 0, GCornerNone);
+    graphics_context_set_stroke_color(ctx, GColorBlack);
+    graphics_draw_rect(ctx, box);
+    graphics_context_set_stroke_color(ctx, GColorCobaltBlue);
+    graphics_draw_rect(ctx, grect_inset(box, GEdgeInsets(2)));
+    graphics_context_set_text_color(ctx, GColorBlack);
+    graphics_draw_text(ctx, HINT, hf, tr, GTextOverflowModeWordWrap, GTextAlignmentCenter, NULL);
+  }
   (void)bounds;
 }
+
+void render_set_hint(bool on) { s_hint = on; }

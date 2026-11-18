@@ -44,6 +44,8 @@ def build(ctx):
             ctx.env.append_value('DEFINES', 'KASUMI_REEL=1')
         if os.environ.get('KASUMI_DEMO_SEALS'):
             ctx.env.append_value('DEFINES', 'KASUMI_DEMO_SEALS=1')
+        if os.environ.get('KASUMI_NO_WEATHER'):
+            ctx.env.append_value('DEFINES', 'KASUMI_NO_WEATHER=1')
         if os.environ.get('KASUMI_DEMO_JOST'):
             ctx.env.append_value('DEFINES', 'KASUMI_DEMO_JOST=1')
         ctx.pbl_build(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf, bin_type='app')

@@ -64,3 +64,5 @@ typedef struct {
 void render_scene(GContext *ctx, GRect bounds, const Weather *w, const Settings *s,
                   const Fonts *f, time_t now, float anim);
 bool render_is_storm(const Weather *w, const Settings *s);
+// Draw the "turn on the plugins preview" hint over the picture.
+void render_set_hint(bool on);
