@@ -127,3 +127,6 @@ labels), Zen Kaku Gothic New Bold (seal kanji).
 
 Code: MIT, see [LICENSE](LICENSE). Fonts: SIL OFL 1.1. Hokusai's prints, which inspired the
 design, are in the public domain; no images from them are included.
+
+It's a hobby project. If you enjoy it and feel like buying me a coffee:
+https://ko-fi.com/U1O02AUNZB
