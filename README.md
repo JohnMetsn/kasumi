@@ -32,10 +32,11 @@ around it.
 - **Wind:** the water goes from calm lines to waves with curling foam; rain slants; clouds trail.
   On the Round 2 a bead on the rim shows where the wind comes from.
 - **Precipitation:** rain strokes, snowflakes, rings on the water.
-- **Humidity:** bands of mist at the foot of the mountain.
+- **Humidity:** above 70 % a band of mist crosses the mountain, above 88 % two. They sit at a
+  different height every hour. (Overcast skies add cloud banks of the same shape.)
 - **UV index:** rings around the sun.
-- **Next 12 hours:** the hourly temperatures shape the hills in front; distant rain curtains
-  hang over the plain in the hours it will rain.
+- **Next 12 hours:** the hourly temperatures shape the hills in front; thin blue rain curtains
+  hang over the plain in the hours it will rain (left is now, right is 11 hours ahead).
 - **5-day forecast (optional):** five small prints, or five seals.
 - **No weather yet** (plugins preview off): the sky still follows the clock with default sun times, and for
   the first two days a note explains how to turn the preview on. A shake hides it; it goes away by itself
